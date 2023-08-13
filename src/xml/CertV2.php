@@ -86,7 +86,7 @@ class CertV2 extends XmlCore
 			$this->certDigest->generateXml( $newElement );
 
 		if ( $this->issuerSerialV2 )
-            $this->issuerSerialV2->generateXml( $newElement );
+			$this->issuerSerialV2->generateXml( $newElement );
 	}
 
 	/**
