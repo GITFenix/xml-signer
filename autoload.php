@@ -2,7 +2,7 @@
 
 function xml_signer_autoload( $classname )
 {
-	$prefix = "lyquidity\\xmldsig\\";
+	$prefix = "gitfenix\\xmldsig\\";
 	if ( strpos( $classname, $prefix ) !== 0 ) return false;
 	$filename = str_replace( $prefix, '', $classname );
 	$filename = str_replace('\\', '/', $filename);
