@@ -465,7 +465,7 @@ class XAdES extends XMLSecurityDSig
 		$object = $this->addObject( null );
 		$qualifyingProperties->generateXml( $object );
 
-        $attachedObjectNodeForDistestCalculation = $this->addObject(
+        $attachedObjectNodeForDigestCalculation = $this->addObject(
             null,
             'text/plain',
             'http://www.w3.org/2000/09/xmldsig#base64',
@@ -507,7 +507,7 @@ class XAdES extends XMLSecurityDSig
 			}
 		}
 
-        $digestValue = base64_encode(hash('sha256', $attachedObjectNodeForDistestCalculation->C14N(), true));
+        $digestValue = base64_encode(hash('sha256', $attachedObjectNodeForDigestCalculation->C14N(), true));
 
 		// Sign using SHA-256
 		$this->addReference(

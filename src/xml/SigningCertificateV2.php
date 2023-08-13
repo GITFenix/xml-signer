@@ -65,7 +65,7 @@ class SigningCertificateV2 extends XmlCore
 	 */
 	public function getLocalName()
 	{
-		return ElementNames::SigningCertificate;
+		return ElementNames::SigningCertificateV2;
 	}
 
 	/**

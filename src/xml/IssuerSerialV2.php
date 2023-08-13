@@ -27,6 +27,6 @@ class IssuerSerialV2 extends Base64String
 	 */
 	public function getLocalName()
 	{
-		return ElementNames::IssuerSerial;
+		return ElementNames::IssuerSerialV2;
 	}
 }
