@@ -340,6 +340,8 @@ class XAdES extends XMLSecurityDSig
 	 */
 	public function signXAdESFile( $xmlResource, $certificateResource, $keyResource = null, $signatureProductionPlace = null, $signerRole = null, $canonicalizationMethod = self::C14N, $addTimestamp = false )
 	{
+        $objectId = XMLSecurityDSig::generateGUID('Id-');
+
 		global $xadesNamespace;
 		if ( $xadesNamespace )
 			$this->currentNamespace = $xadesNamespace;
@@ -463,6 +465,14 @@ class XAdES extends XMLSecurityDSig
 		$object = $this->addObject( null );
 		$qualifyingProperties->generateXml( $object );
 
+        $attachedObjectNodeForDigestCalculation = $this->addObject(
+            null,
+            'text/plain',
+            'http://www.w3.org/2000/09/xmldsig#base64',
+            $objectId,
+            base64_encode($xmlResource->generateDomDocument()->C14N())
+        );
+
 		// Get the specific node to be included in the signature
         $xpath = $this->getXPathObj();
         $xpath->registerNamespace( $prefix, $this->currentNamespace );
@@ -497,20 +507,18 @@ class XAdES extends XMLSecurityDSig
 			}
 		}
 
+        $digestValue = base64_encode(hash('sha256', $attachedObjectNodeForDigestCalculation->C14N(), true));
+
 		// Sign using SHA-256
 		$this->addReference(
 			$node, // Content
 			XMLSecurityDSig::SHA256, // Algorithm
 			$xmlResource->convertTransforms( ! $xmlResource->detached ), // Transforms
-			array( // Options
-				'force_uri' => $xmlResource->detached
-					? ( $xmlResource->isURL() 
-						? XMLSecurityDSig::encodedUrl( parse_url( $xmlResource->resource ) ) 
-						: basename( $xmlResource->resource )
-					  )
-					: $xmlResource->uri ?? true,
-				'id' => $referenceId,
-			)
+            [
+                'force_uri' => '#'.$objectId,
+                'id' => $referenceId,
+                'digestValue' => $digestValue,
+            ]
 		);
 
 		// Create a new (private) Security key
@@ -917,21 +925,10 @@ class XAdES extends XMLSecurityDSig
 	{
 		$sdop = new SignedDataObjectProperties(
 			new DataObjectFormat(
-				$this->fileBeingSigned->isFile()  // File reference
-					? basename( $this->fileBeingSigned->resource ) 
-					: ( $this->fileBeingSigned->isXmlDocument() 
-						? ( $this->fileBeingSigned->resource->baseURI
-								? $this->fileBeingSigned->resource->baseURI
-								: $this->fileBeingSigned->saveFilename
-						) 
-						: ( $this->fileBeingSigned->isString()
-								? $this->fileBeingSigned->saveFilename
-								: $this->fileBeingSigned->resource 
-						)
-					),
+                'Dokument w formacie xml [XML]',
 				null, // ObjectIdentifier
-				'text/xml', // MimeType
-				null, // Encoding
+				'text/plain', // MimeType
+                'http://www.w3.org/2000/09/xmldsig#base64', // Encoding
 				"#$referenceId"
 			),
 			null, // CommitmentTypeIndication
@@ -982,8 +979,8 @@ class XAdES extends XMLSecurityDSig
 			$cert = $loader->fromFile( $certificate );
 		}
 
-		$signingCertificate = null; // SigningCertificate::fromCertificate( $cert );
-		$signingCertificateV2 = SigningCertificateV2::fromCertificate( $cert, $issuer );
+		$signingCertificate = SigningCertificate::fromCertificate( $cert );
+		$signingCertificateV2 = null; //SigningCertificateV2::fromCertificate( $cert, $issuer );
 
 		$qualifyingProperties = new QualifyingProperties(
 			new SignedProperties(

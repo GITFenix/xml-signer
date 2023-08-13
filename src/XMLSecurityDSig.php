@@ -1113,7 +1113,12 @@ class XMLSecurityDSig
         }
 
         $canonicalData = $this->processTransforms( $refNode, $node, ! $force_uri );
+
         $digValue = $this->calculateDigest( $algorithm, $canonicalData );
+
+        if (isset($options['digestValue'])) {
+            $digValue = $options['digestValue'];
+        }
 
         $digestMethod = $this->createNewSignNode( ElementNames::DigestMethod );
         $refNode->appendChild( $digestMethod );
@@ -1170,7 +1175,7 @@ class XMLSecurityDSig
      * @param null|string $encoding
      * @return DOMElement
      */
-    public function addObject( $data, $mimetype=null, $encoding=null )
+    public function addObject( $data, $mimetype=null, $encoding=null , $objectId=null, $value=null)
     {
         $objNode = $this->createNewSignNode('Object');
         $this->sigNode->appendChild( $objNode );
@@ -1181,6 +1186,14 @@ class XMLSecurityDSig
         if ( ! empty( $encoding ) )
         {
             $objNode->setAttribute( 'Encoding', $encoding );
+        }
+
+        if (null !== $objectId) {
+            $objNode->setAttribute('Id' , $objectId);
+        }
+
+        if (null !== $value) {
+            $objNode->nodeValue = $value;
         }
 
         if ($data instanceof DOMElement)
