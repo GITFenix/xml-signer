@@ -14,7 +14,6 @@ use lyquidity\Asn1\Der\Encoder;
 use \lyquidity\Asn1\Element\Sequence;
 use lyquidity\OCSP\CertificateInfo;
 use lyquidity\OCSP\Ocsp;
-use lyquidity\xmldsig\XMLSecurityDSig;
 
 /**
  * 
@@ -66,7 +65,7 @@ class SigningCertificateV2 extends XmlCore
 	 */
 	public function getLocalName()
 	{
-		return ElementNames::SigningCertificateV2;
+		return ElementNames::SigningCertificate;
 	}
 
 	/**

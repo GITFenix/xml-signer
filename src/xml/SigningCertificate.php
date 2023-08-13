@@ -11,6 +11,7 @@
 namespace lyquidity\xmldsig\xml;
 
 use lyquidity\Asn1\Element\Sequence;
+use lyquidity\OCSP\CertificateInfo;
 use lyquidity\OCSP\Ocsp;
 use lyquidity\xmldsig\XAdES;
 use lyquidity\xmldsig\XMLSecurityDSig;
@@ -100,20 +101,8 @@ class SigningCertificate extends XmlCore
 		/** @var CertificateInfo $certificateInfo */
 		/** @var Sequence $issuerCertificate */
 
-		// If the issuer certificate can be found the use its values
-		if ( $issuerCertificate )
-		{
-			$serialNumber = $certificateInfo->extractSerialNumber( $issuerCertificate, true );
-			$issuer = $certificateInfo->getDNString( $issuerCertificate, false );
-		}
-		else
-		{
-			// If the issuer certificate cannot be found, it this an error?
-			// For now just use the issuer details from the signing certificate
-			$issuer = $certificateInfo->getDNString( $certificate, true );
-			// TODO: This is wrong but use the cert serial number for now
-			$serialNumber = $certificateInfo->extractSerialNumber( $certificate, true );
-		}
+        $serialNumber = $certificateInfo->extractSerialNumber( $certificate, true );
+        $issuer = $certificateInfo->getDNString( $issuerCertificate, false );
 
 		// Add the algorithm attribute
 		$reflection = new \ReflectionClass('\lyquidity\xmldsig\XMLSecurityDSig');
