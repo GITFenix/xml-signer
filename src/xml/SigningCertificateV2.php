@@ -14,6 +14,7 @@ use lyquidity\Asn1\Der\Encoder;
 use \lyquidity\Asn1\Element\Sequence;
 use lyquidity\OCSP\CertificateInfo;
 use lyquidity\OCSP\Ocsp;
+use lyquidity\xmldsig\XMLSecurityDSig;
 
 /**
  * 
