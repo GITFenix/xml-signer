@@ -894,6 +894,16 @@ class XAdES extends XMLSecurityDSig
 		return $canonicalizedSignedInfo;
 	}
 
+    public function getSignedDocumentAsString(): string
+    {
+        /**
+         * @var \DOMDocument $document
+         */
+        $document = $this->sigNode->ownerDocument;
+
+        return $document->saveXML();
+    }
+
 	/**
 	 * Get the filename to use to save the signature
 	 * This can be overridden by desendent to specify a jurisdiction specific name
