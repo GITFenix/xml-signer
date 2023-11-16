@@ -148,27 +148,17 @@ class XAdES extends XMLSecurityDSig
 	 * @param string[] $options (optional) A list of other, variable properties such as canonicalizationMethod and addTimestamp
 	 * @return XAdES
 	 */
-	public static function signDocument( $xmlResource, $certificateResource, $keyResource = null, $signatureProductionPlace = null, $signerRole = null, $options = array() )
+	public static function signDocument( $xmlResource, $certificateResource, $keyResource = null, $signatureProductionPlace = null, $signerRole = null, $options = [] )
 	{
 		$prefix = $options['prefix'] ?? XMLSecurityDSig::defaultPrefix;
 
 		$instance = new static( $prefix, $xmlResource->signatureId );
-		
-		if ( is_array( $options ) )
-		{
-			$canonicalizationMethod =  $options['canonicalizationMethod'] ?? self::C14N;
-			$addTimestamp = $options[ ADDTIMESTAMP ] ?? false;
-			self::$xadesPrefix = $options['xadesPrefix'] ?? self::$xadesPrefix;
-		}
-		else
-		{
-			// Allow that $options might still be bool or string
-			$canonicalizationMethod = self::C14N;
-			$addTimestamp = $options;
-		}
 
-		$instance->signXAdESFile( $xmlResource, $certificateResource, $keyResource, $signatureProductionPlace, $signerRole, $canonicalizationMethod, $addTimestamp );
-		return $instance;
+        $canonicalizationMethod =  $options['canonicalizationMethod'] ?? self::C14N;
+
+		$instance->signXAdESFile( $xmlResource, $certificateResource, $keyResource, $signatureProductionPlace, $signerRole, $canonicalizationMethod, $options );
+
+        return $instance;
 	}
 
 	/**
@@ -185,7 +175,7 @@ class XAdES extends XMLSecurityDSig
 	 * @param string[] $options (optional) A list of other, variable properties such as canonicalizationMethod and addTimestamp
 	 * @return string
 	 */
-	public static function getCanonicalizedSI( $xmlResource, $certificateResource, $signatureProductionPlace = null, $signerRole = null, $options = array() )
+	public static function getCanonicalizedSI( $xmlResource, $certificateResource, $signatureProductionPlace = null, $signerRole = null, $options = [] )
 	{
 		$prefix = $options['prefix'] ?? XMLSecurityDSig::defaultPrefix;
 		self::$xadesPrefix = $options['xadesPrefix'] ?? self::$xadesPrefix;
@@ -338,8 +328,19 @@ class XAdES extends XMLSecurityDSig
 	 * @param bool|string $addTimestamp (optional) It may be a string if an alternative TSA is to be used
 	 * @return bool
 	 */
-	public function signXAdESFile( $xmlResource, $certificateResource, $keyResource = null, $signatureProductionPlace = null, $signerRole = null, $canonicalizationMethod = self::C14N, $addTimestamp = false )
-	{
+	public function signXAdESFile(
+        $xmlResource,
+        $certificateResource,
+        $keyResource = null,
+        $signatureProductionPlace = null,
+        $signerRole = null,
+        $canonicalizationMethod = self::C14N,
+        $options = []
+    ) {
+        $addTimestamp = $options['addTimestamp'] ?? false;
+        self::$xadesPrefix = $options['xadesPrefix'] ?? self::$xadesPrefix;
+        $issuerCertPath = $options['issuerCertPath'] ?? null;
+
         $objectId = XMLSecurityDSig::generateGUID('Id-');
 
 		global $xadesNamespace;
@@ -441,7 +442,9 @@ class XAdES extends XMLSecurityDSig
 			$signatureProductionPlace, 
 			$signerRole, 
 			$signaturePropertiesId,
-			$referenceId
+			$referenceId,
+            self::SignedPropertiesId,
+            $issuerCertPath
 		);
 
 		// If the signature is to be attached, add a prefix so when the signature 
@@ -971,7 +974,8 @@ class XAdES extends XMLSecurityDSig
 		$signerRole = null,
 		$signaturePropertiesId = null,
 		$referenceId = null,
-		$signedPropertiesId = self::SignedPropertiesId
+		$signedPropertiesId = self::SignedPropertiesId,
+        $issuerCertPath = null
 	)
 	{
 		$loader = new CertificateLoader();
@@ -989,7 +993,11 @@ class XAdES extends XMLSecurityDSig
 			$cert = $loader->fromFile( $certificate );
 		}
 
-		$signingCertificate = SigningCertificate::fromCertificate( $cert );
+		$signingCertificate = SigningCertificate::fromCertificate(
+            $cert,
+            SigningCertificate::defaultAlgorithm,
+            $issuerCertPath
+        );
 		$signingCertificateV2 = null; //SigningCertificateV2::fromCertificate( $cert, $issuer );
 
 		$qualifyingProperties = new QualifyingProperties(
