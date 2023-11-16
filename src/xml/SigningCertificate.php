@@ -12,6 +12,7 @@ namespace lyquidity\xmldsig\xml;
 
 use lyquidity\Asn1\Element\Sequence;
 use lyquidity\OCSP\CertificateInfo;
+use lyquidity\OCSP\CertificateLoader;
 use lyquidity\OCSP\Ocsp;
 use lyquidity\xmldsig\XAdES;
 use lyquidity\xmldsig\XMLSecurityDSig;
@@ -91,12 +92,15 @@ class SigningCertificate extends XmlCore
 	 * @param string $algorithm
 	 * @return SigningCertificate
 	 */
-	public static function fromCertificate( $certificate, $algorithm = self::defaultAlgorithm )
+	public static function fromCertificate( $certificate, $algorithm = self::defaultAlgorithm, ?string $issuerCertPath = null)
 	{
 		// Add the digest
 		$digest = base64_encode( hash( $algorithm,  (new \lyquidity\Asn1\Der\Encoder())->encodeElement( $certificate ), true ) );
 
-		list( $certificate, $certificateInfo, $ocspResponderUrl, $issuerCertBytes, $issuerCertificate ) = array_values( Ocsp::getCertificate( $certificate ) );
+        $issuerCert = new CertificateLoader();
+        $sequence = $issuerCertPath ? $issuerCert->fromFile($issuerCertPath) : null;
+
+		list( $certificate, $certificateInfo, $ocspResponderUrl, $issuerCertBytes, $issuerCertificate ) = array_values( Ocsp::getCertificate( $certificate, $sequence ) );
 		/** @var Sequence $certificate */
 		/** @var CertificateInfo $certificateInfo */
 		/** @var Sequence $issuerCertificate */
